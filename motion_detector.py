@@ -21,6 +21,7 @@ sleep = int(os.getenv('LIFX_WAKE_TIME', 300))
 def build_payload(state):
     j = {}
     j['power'] = state
+    j['color'] = "kelvin:3500 brightness:1"
     return j
 
 # which light do we want? default to all

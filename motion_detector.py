@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time
 import os
 import sys
@@ -5,8 +6,10 @@ import sys
 import RPi.GPIO as GPIO
 import requests
 
+sensor_pin=14
+
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(23, GPIO.IN) #PIR sensor on pin 23
+GPIO.setup(sensor_pin, GPIO.IN)
 
 token = os.getenv('LIFX_TOKEN')
 if not token:
@@ -43,7 +46,7 @@ def check_current_status(s):
 try:
     state = check_current_status(selector)
     while True:
-        if GPIO.input(23):
+        if GPIO.input(sensor_pin):
             if not state == "on":
                 print("Motion Detected, turning light on")
                 r = requests.put(url+'/state', data=build_payload('on'), headers=headers)

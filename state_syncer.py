@@ -5,6 +5,7 @@ import os
 import json
 
 from lifxlan import Light, Group, WorkflowException
+from retrying import retry
 
 # Discover all lights on LAN and create a LifxLAN object
 # lifx = LifxLAN()
@@ -39,15 +40,24 @@ def get_power_state(l):
         state = "off"
     return(state)
 
+@retry(wait_random_min=100, wait_random_max=200)
 def modify_brightness(group):
     # if between 5am and 5pm then set brightness to 100%, if otherwise, set
     # brightness to 20%
     now = datetime.datetime.now()
-    if 5 <= now.year <= 17:
+    # Use the retrying library to automatically retry. The problem is that, when
+    # lights are powered on, they do not respond to get_() for a few seconds, so
+    # instead of adding a random sleep or complicated retry behavior, just use
+    # the retry library to retry until this function returns
+    # When a light doesn't respond, a WorkflowException is raised
+    if 5 <= now.hour <= 17:
         group.set_brightness(65535)
     else:
         group.set_brightness(13107)
+    # TODO: This is a jarring transition, use the HTTP API to set brightness
+    # prior to turning on!
 
+# This is the initial state when the script starts
 power_state = {"state": get_power_state(parent_light), "times_seen": 0}
 
 while True:
